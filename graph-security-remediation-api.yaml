@@ -11,7 +11,7 @@ paths:
     post:
       operationId: RemediateAnalyzedEmail
       summary: Remediate analyzed emails by moving to junk folder
-      description: Remove potential threats from end users mailboxes
+      description: Remove potential threats from end users mailboxes by moving to junk using Microsoft Graph Security API
       security:
         - BearerAuth: []
       requestBody:
@@ -26,8 +26,7 @@ paths:
                 - severity
                 - action
                 - remediateSendersCopy
-                - networkMessageId
-                - recipientEmailAddress
+                - analyzedEmails
               properties:
                 displayName:
                   type: string
@@ -49,42 +48,54 @@ paths:
                   example: "moveToJunk"
                 remediateSendersCopy:
                   type: boolean
-                  description: Whether to remediate sender's copy
+                  description: Whether to remediate sender's copy for internal emails
                   example: false
-                networkMessageId:
-                  type: string
-                  description: Network message ID from EmailEvents
-                  example: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
-                recipientEmailAddress:
-                  type: string
-                  format: email
-                  description: Email address of the recipient
-                  example: "user@contoso.com"
+                analyzedEmails:
+                  type: array
+                  description: Array of emails to remediate
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - networkMessageId
+                      - recipientEmailAddress
+                    properties:
+                      networkMessageId:
+                        type: string
+                        description: Network message ID from EmailEvents
+                        example: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
+                      recipientEmailAddress:
+                        type: string
+                        format: email
+                        description: Email address of the recipient
+                        example: "user@contoso.com"
             example:
               displayName: "BeakGuard Spoofing Remediation"
               description: "Moving spoofed email to junk folder"
               severity: "medium"
               action: "moveToJunk"
               remediateSendersCopy: false
-              networkMessageId: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
-              recipientEmailAddress: "user@contoso.com"
+              analyzedEmails:
+                - networkMessageId: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
+                  recipientEmailAddress: "user@contoso.com"
       responses:
         '202':
           description: Accepted - remediation initiated successfully
-          content:
-            application/json:
+          headers:
+            Location:
+              description: Link to action center for tracking remediation status
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    description: Remediation task ID
+                type: string
+          content:
+            text/plain:
+              schema:
+                type: string
         '400':
-          description: Bad Request
+          description: Bad Request - Invalid request parameters
         '401':
-          description: Unauthorized
+          description: Unauthorized - Invalid or missing authentication token
         '403':
-          description: Forbidden
+          description: Forbidden - Insufficient permissions
         '500':
           description: Internal Server Error
 components:
