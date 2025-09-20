@@ -1,19 +1,19 @@
 openapi: 3.0.0
 info:
-  title: Microsoft Graph Security Email Remediation API
-  description: API for remediating analyzed emails using Microsoft Graph Security Beta API
+  title: BeakGuard Email Remediation API
+  description: Email remediation API compatible with Security Copilot VS Code Extension
   version: "1.0.0"
 servers:
-  - url: https://graph.microsoft.com/beta
-    description: Microsoft Graph Beta API
+  - url: https://graph.microsoft.com/beta/security/collaboration/analyzedEmails
+    description: Microsoft Graph Security API
 paths:
-  /security/collaboration/analyzedEmails/remediate:
+  /remediate:
     post:
-      operationId: RemediateAnalyzedEmail
-      summary: Remediate analyzed emails by moving to junk folder
-      description: Remove potential threats from end users mailboxes by moving to junk using Microsoft Graph Security API
+      operationId: remediateEmail
+      summary: Remediate a single email
+      description: Move a single email to junk folder
       security:
-        - BearerAuth: []
+        - oauth2: []
       requestBody:
         required: true
         content:
@@ -21,87 +21,42 @@ paths:
             schema:
               type: object
               required:
-                - displayName
-                - description
-                - severity
-                - action
-                - remediateSendersCopy
-                - analyzedEmails
+                - networkMessageId
+                - recipientEmailAddress
               properties:
-                displayName:
+                networkMessageId:
                   type: string
-                  description: Name of remediation action
-                  example: "BeakGuard Email Remediation"
-                description:
+                  description: Network message ID from EmailEvents
+                  example: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
+                recipientEmailAddress:
                   type: string
-                  description: Description of remediation
-                  example: "Moving suspicious email to junk folder"
-                severity:
-                  type: string
-                  enum: ["low", "medium", "high"]
-                  description: Severity level of the remediation
-                  example: "medium"
-                action:
-                  type: string
-                  enum: ["moveToJunk", "moveToInbox", "softDelete", "hardDelete", "moveToDeletedItems"]
-                  description: Action to perform on the email
-                  example: "moveToJunk"
-                remediateSendersCopy:
-                  type: boolean
-                  description: Whether to remediate sender's copy for internal emails
-                  example: false
-                analyzedEmails:
-                  type: array
-                  description: Array of emails to remediate
-                  minItems: 1
-                  items:
-                    type: object
-                    required:
-                      - networkMessageId
-                      - recipientEmailAddress
-                    properties:
-                      networkMessageId:
-                        type: string
-                        description: Network message ID from EmailEvents
-                        example: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
-                      recipientEmailAddress:
-                        type: string
-                        format: email
-                        description: Email address of the recipient
-                        example: "user@contoso.com"
-            example:
-              displayName: "BeakGuard Spoofing Remediation"
-              description: "Moving spoofed email to junk folder"
-              severity: "medium"
-              action: "moveToJunk"
-              remediateSendersCopy: false
-              analyzedEmails:
-                - networkMessageId: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
-                  recipientEmailAddress: "user@contoso.com"
+                  format: email
+                  description: Email address of the recipient
+                  example: "user@contoso.com"
       responses:
         '202':
-          description: Accepted - remediation initiated successfully
-          headers:
-            Location:
-              description: Link to action center for tracking remediation status
-              schema:
-                type: string
+          description: Accepted - remediation initiated
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         '400':
-          description: Bad Request - Invalid request parameters
+          description: Bad Request
         '401':
-          description: Unauthorized - Invalid or missing authentication token
+          description: Unauthorized
         '403':
-          description: Forbidden - Insufficient permissions
-        '500':
-          description: Internal Server Error
+          description: Forbidden
 components:
   securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: Azure AD Bearer token with SecurityAnalyzedMessage.ReadWrite.All permission
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://login.microsoftonline.com/ea51d8d3-3565-4bd4-9ab0-77c9c5e5693d/oauth2/v2.0/token
+          scopes:
+            https://graph.microsoft.com/.default: Default scope
