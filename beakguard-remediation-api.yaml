@@ -1,0 +1,75 @@
+openapi: 3.0.0
+info:
+  title: BeakGuard Email Remediation API
+  description: BeakStreamCore API for email remediation
+  version: "v1"
+servers:
+  - url: https://ai-dev.beakops.com/api/bitc
+paths:
+  /runs/copilot/stream:
+    post:
+      operationId: RemediateEmail
+      summary: Remediate suspicious email using BeakStreamCore
+      parameters:
+        - name: opengpts-user-id
+          in: header
+          required: true
+          schema:
+            type: string
+            default: "beakguard-user-001"
+          description: The BeakOps user ID
+        - name: emailid
+          in: header
+          required: true
+          schema:
+            type: string
+            format: email
+            default: "security@limslabs.onmicrosoft.com"
+          description: The email ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - networkMessageId
+                - recipientEmailAddress
+              properties:
+                networkMessageId:
+                  type: string
+                  description: Network message ID from EmailEvents
+                recipientEmailAddress:
+                  type: string
+                  format: email
+                  description: Email address of the recipient
+                content:
+                  type: string
+                  default: "Move suspicious email to junk folder"
+                  description: Action message for remediation
+                assistant_id:
+                  type: string
+                  default: "cfb458bb-09d1-4131-8b03-2b6249750eed"
+                  description: BeakGuard assistant identifier
+      responses:
+        "200":
+          description: Email successfully remediated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  networkMessageId:
+                    type: string
+                  recipientEmailAddress:
+                    type: string
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
