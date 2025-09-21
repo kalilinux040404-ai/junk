@@ -1,19 +1,19 @@
 openapi: 3.0.0
 info:
-  title: BeakGuard Email Remediation API
-  description: Email remediation API compatible with Security Copilot VS Code Extension
+  title: BeakGuard Simple Email Remediation API
+  description: Simplified API for moving emails to junk folder - VS Code Extension compatible
   version: "1.0.0"
 servers:
-  - url: https://graph.microsoft.com/beta/security/collaboration/analyzedEmails
-    description: Microsoft Graph Security API
+  - url: https://graph.microsoft.com/beta
+    description: Microsoft Graph Beta API
 paths:
-  /remediate:
+  /security/collaboration/analyzedEmails/remediate:
     post:
-      operationId: remediateEmail
-      summary: Remediate a single email
-      description: Move a single email to junk folder
+      operationId: RemediateEmail
+      summary: Move single email to junk folder
+      description: Move suspicious email to junk folder using Microsoft Graph Security API
       security:
-        - oauth2: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -24,6 +24,33 @@ paths:
                 - networkMessageId
                 - recipientEmailAddress
               properties:
+                displayName:
+                  type: string
+                  description: Name of remediation action
+                  default: "BeakGuard Email Remediation"
+                  example: "BeakGuard Email Remediation"
+                description:
+                  type: string
+                  description: Description of remediation action
+                  default: "Moving suspicious email to junk folder"
+                  example: "Moving suspicious email to junk folder"
+                severity:
+                  type: string
+                  enum: ["low", "medium", "high"]
+                  description: Severity level
+                  default: "medium"
+                  example: "medium"
+                action:
+                  type: string
+                  enum: ["moveToJunk"]
+                  description: Action to perform - fixed to moveToJunk
+                  default: "moveToJunk"
+                  example: "moveToJunk"
+                remediateSendersCopy:
+                  type: boolean
+                  description: Whether to remediate sender's copy
+                  default: false
+                  example: false
                 networkMessageId:
                   type: string
                   description: Network message ID from EmailEvents
@@ -33,9 +60,17 @@ paths:
                   format: email
                   description: Email address of the recipient
                   example: "user@contoso.com"
+            example:
+              displayName: "BeakGuard Email Remediation"
+              description: "Moving suspicious email to junk folder"
+              severity: "medium"
+              action: "moveToJunk"
+              remediateSendersCopy: false
+              networkMessageId: "73ca4154-58d8-43d0-a890-08dc18c52e6d"
+              recipientEmailAddress: "user@contoso.com"
       responses:
         '202':
-          description: Accepted - remediation initiated
+          description: Accepted - email remediation initiated successfully
           content:
             application/json:
               schema:
@@ -43,20 +78,33 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   message:
                     type: string
+                    example: "Email successfully queued for remediation"
+                  remediationId:
+                    type: string
+                    example: "rem_12345-abcd-6789-efgh"
         '400':
-          description: Bad Request
+          description: Bad Request - Invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid networkMessageId format"
         '401':
-          description: Unauthorized
+          description: Unauthorized - Invalid authentication
         '403':
-          description: Forbidden
+          description: Forbidden - Insufficient permissions
+        '500':
+          description: Internal Server Error
 components:
   securitySchemes:
-    oauth2:
-      type: oauth2
-      flows:
-        clientCredentials:
-          tokenUrl: https://login.microsoftonline.com/ea51d8d3-3565-4bd4-9ab0-77c9c5e5693d/oauth2/v2.0/token
-          scopes:
-            https://graph.microsoft.com/.default: Default scope
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Azure AD Bearer token with SecurityAnalyzedMessage.ReadWrite.All permission
