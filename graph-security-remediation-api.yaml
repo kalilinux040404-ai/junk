@@ -43,24 +43,6 @@ paths:
                   type: boolean
                   default: false
                   description: Whether to remediate sender's copy
-                analyzedEmails:
-                  type: array
-                  description: Array of emails to remediate
-                  minItems: 1
-                  items:
-                    type: object
-                    required:
-                      - networkMessageId
-                      - recipientEmailAddress
-                    properties:
-                      networkMessageId:
-                        type: string
-                        description: Network message ID from EmailEvents
-                      recipientEmailAddress:
-                        type: string
-                        format: email
-                        description: Email address of the recipient
-                # Input parameters for transformation
                 networkMessageId:
                   type: string
                   description: Network message ID from EmailEvents
