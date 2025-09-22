@@ -1,0 +1,54 @@
+openapi: 3.0.1
+info:
+  title: Email Remediation API
+  description: >
+    Azure Function that calls Microsoft Graph Security API to remediate suspicious emails
+    by moving them to the Junk folder.
+  version: 1.0.0
+
+servers:
+  - url: https://beakguard-c5gnfffmejbxcedp.eastus-01.azurewebsites.net/api
+    description: Azure Function App (East US)
+
+paths:
+  /remediate_email:
+    post:
+      summary: Remediate a suspicious email
+      description: >
+        Calls Microsoft Graph to remediate (move to Junk) a suspicious email
+        using its networkMessageId and recipient email.
+      operationId: remediateEmail
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Azure Function access key
+          schema:
+            type: string
+          example: qrZF5yq2UiNgSPQpy3fgjkiKytCiq2KkOVDgmVB1EXA9AzFuIp4lhA==
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - networkMessageId
+                - recipientEmail
+              properties:
+                networkMessageId:
+                  type: string
+                  example: "0280f2cc-b1e6-442b-485c-08dde4cf6818"
+                recipientEmail:
+                  type: string
+                  format: email
+                  example: "manivannan@limslabs.onmicrosoft.com"
+      responses:
+        "200":
+          description: Email remediation request submitted successfully
+        "400":
+          description: Bad request – missing or invalid parameters
+        "401":
+          description: Unauthorized – failed to acquire access token
+        "500":
+          description: Internal server error
