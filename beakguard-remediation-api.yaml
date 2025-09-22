@@ -1,31 +1,31 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: BeakGuard Email Remediation API
-  description: BeakStreamCore API for email remediation
-  version: "v1"
+  title: RemediateEmail
+  description: This is the core API call which connects to different agent
+  version: 1.0.0
 servers:
   - url: https://ai-dev.beakops.com/api/bitc
 paths:
   /runs/copilot/stream:
     post:
+      summary: This is the core API call which connects to different agent
       operationId: RemediateEmail
-      summary: Remediate suspicious email using BeakStreamCore
+      security:
+        - ApiKeyAuth: []
       parameters:
         - name: opengpts-user-id
           in: header
           required: true
           schema:
             type: string
-            default: "beakguard-user-001"
-          description: The BeakOps user ID
+          description: The BeakOps user ID.
         - name: emailid
           in: header
           required: true
           schema:
             type: string
             format: email
-            default: "security@limslabs.onmicrosoft.com"
-          description: The email ID of the user
+          description: The email ID of the user.
       requestBody:
         required: true
         content:
@@ -38,32 +38,32 @@ paths:
               properties:
                 content:
                   type: string
-                  default: "Move suspicious email to junk folder"
-                  description: Action message for remediation
+                  description: The message sent to the copilot.
+                  example: Hi
                 assistant_id:
                   type: string
-                  default: "cfb458bb-09d1-4131-8b03-2b6249750eed"
-                  description: BeakGuard assistant identifier
+                  description: Unique identifier of the copilot assistant.
+                  example: cfb458bb-09d1-4131-8b03-2b6249750eed
       responses:
-        "200":
-          description: Email successfully remediated
+        '200':
+          description: Streamed response from the copilot.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
                   message:
                     type: string
-                  networkMessageId:
-                    type: string
-                  recipientEmailAddress:
-                    type: string
-        "400":
-          description: Bad request
-        "401":
-          description: Unauthorized
-        "500":
-          description: Internal server error
-
+                    description: The response message from the copilot.
+        '400':
+          description: Bad request (e.g. invalid assistant_id).
+        '401':
+          description: Unauthorized (invalid API key).
+        '500':
+          description: Internal server error.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: API-Key
