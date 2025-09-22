@@ -17,9 +17,7 @@ paths:
       description: >
         Calls Microsoft Graph to remediate (move to Junk) a suspicious email
         using its networkMessageId and recipient email.
-      operationId: remediateEmail
-      security:
-        - function_key: []   # Require the function key for this endpoint
+      operationId: RemediateEmail
       requestBody:
         required: true
         content:
@@ -46,10 +44,3 @@ paths:
           description: Unauthorized – invalid or missing function key
         "500":
           description: Internal server error
-
-components:
-  securitySchemes:
-    function_key:
-      type: apiKey
-      name: code        # the actual query parameter name Azure Functions expects
-      in: query
