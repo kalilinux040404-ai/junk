@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: RemediateEmail
+  title: Beak Stream Core
   description: This is the core API call which connects to different agent
   version: 1.0.0
 servers:
