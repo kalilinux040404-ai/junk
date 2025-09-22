@@ -18,14 +18,8 @@ paths:
         Calls Microsoft Graph to remediate (move to Junk) a suspicious email
         using its networkMessageId and recipient email.
       operationId: remediateEmail
-      parameters:
-        - name: code
-          in: query
-          required: true
-          description: Azure Function access key
-          schema:
-            type: string
-          example: qrZF5yq2UiNgSPQpy3fgjkiKytCiq2KkOVDgmVB1EXA9AzFuIp4lhA==
+      security:
+        - function_key: []   # Require the function key for this endpoint
       requestBody:
         required: true
         content:
@@ -49,6 +43,13 @@ paths:
         "400":
           description: Bad request – missing or invalid parameters
         "401":
-          description: Unauthorized – failed to acquire access token
+          description: Unauthorized – invalid or missing function key
         "500":
           description: Internal server error
+
+components:
+  securitySchemes:
+    function_key:
+      type: apiKey
+      name: code        # the actual query parameter name Azure Functions expects
+      in: query
